@@ -1,0 +1,6 @@
+models/
+build/
+.venv/
+3rdparty/llama.cpp/build/
+3rdparty/llama.cpp/models/
+*.gguf

@@ -107,10 +107,10 @@ class Model(ABC):
                 return False
         return name == (key_name + suffix)
 
-    def map_tensor_name(self, name: str, try_suffixes: Sequence[str] = (".weight", ".bias")) -> str:
+    def map_tensor_name(self, name: str, try_suffixes: Sequence[str] = (".weight", ".bias")) -> str | None:
         new_name = self.tensor_map.get_name(key=name, try_suffixes=try_suffixes)
         if new_name is None:
-            raise ValueError(f"Can not map tensor {name!r}")
+            return None
         return new_name
 
     def set_gguf_parameters(self):
@@ -175,7 +175,8 @@ class Model(ABC):
             # map tensor names
             new_name = tensor_map.get_name(name, try_suffixes=(".weight", ".bias"))
             if new_name is None:
-                raise ValueError(f"Can not map tensor {name!r}")
+                logger.warning(f"gguf: skipping unknown tensor {name}")
+                continue
 
             n_dims = len(data.shape)
             data_dtype = data.dtype
@@ -342,6 +343,8 @@ class Model(ABC):
             res = "command-r"
         if chkhsh == "9d032fcbd5501f4a38150912590928bfb36091efb5df11b8e2124b0390e3fb1e":
             res = "falcon3"
+        if chkhsh == "e636dc30a262dcc0d8c323492e32ae2b70728f4df7dfe9737d9f920a282b8aea":
+            res = "qwen2"
 
         if res is None:
             logger.warning("\n")
@@ -679,7 +682,7 @@ def read_model_config(model_dir: str) -> dict[str, Any]:
     with open(config, "r") as f:
         return json.load(f)
 
-@Model.register("LLaMAForCausalLM", "LlamaForCausalLM", "MistralForCausalLM", "MixtralForCausalLM")
+@Model.register("LLaMAForCausalLM", "LlamaForCausalLM", "MistralForCausalLM", "MixtralForCausalLM", "Qwen2ForCausalLM", "Qwen3ForCausalLM")
 class LlamaModel(Model):
     model_arch = gguf.MODEL_ARCH.LLAMA
 
@@ -905,13 +908,17 @@ class LlamaModel(Model):
                     merged_name = f"layers.{bid}.feed_forward.experts.{wid}.weight"
 
                     new_name = self.map_tensor_name(merged_name)
+                    if new_name is None:
+                         continue
 
                     tensors.append((new_name, data_torch))
                 return tensors
             else:
                 return []
 
-        return [(self.map_tensor_name(name), data_torch)]
+        new_name = self.map_tensor_name(name)
+        if new_name is None: return []
+        return [(new_name, data_torch)]
 
     def generate_extra_tensors(self) -> Iterable[tuple[str, Tensor]]:
         if rope_scaling := self.find_hparam(["rope_scaling"], optional=True):
@@ -981,7 +988,9 @@ class BitnetModel(Model):
                           "o_proj.weight")):
             data_torch = self.weight_quant(data_torch)
 
-        return [(self.map_tensor_name(name), data_torch)]
+        new_name = self.map_tensor_name(name)
+        if new_name is None: return []
+        return [(new_name, data_torch)]
 
     def write_tensors(self):
         max_name_len = max(len(s) for _, s in self.tensor_map.mapping.values()) + len(".weight,")
