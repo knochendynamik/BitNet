@@ -1,18 +1,38 @@
 #!/bin/bash
-# Dual BitNet Server Stack
-BINARY="/Users/bjornbellmann/BitNet/build/bin/llama-server"
+# Sovereign Triade - BitNet Server Stack
+# Optimized for M1 Pro (16GB RAM / 8+2 Cores)
 
-# Startup configuration
-FALCON_MODEL="/Users/bjornbellmann/BitNet/models/ggml-model-i2_s.gguf"
-BITNET_158B_MODEL="/Users/bjornbellmann/BitNet/models/BitNet-1.58b/ggml-model-i2_s.gguf"
+# Root detection
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+BINARY="$SCRIPT_DIR/build/bin/llama-server"
+LOG_DIR="$SCRIPT_DIR/../.logs"
 
-# Start Falcon-3 10B on Port 8085 (Complex Tasks)
-echo "Starting Falcon-3 10B BitNet on port 8085..."
-$BINARY -m "$FALCON_MODEL" --host 0.0.0.0 --port 8085 --ctx-size 8192 --threads 4 > /Users/bjornbellmann/TRIPODS\ 2.0/.logs/falcon_bitnet.log 2>&1 &
+# Library Paths (Required for macOS dynamic linking after move)
+LLAMA_LIB_DIR="$SCRIPT_DIR/build/3rdparty/llama.cpp/src"
+GGML_LIB_DIR="$SCRIPT_DIR/build/3rdparty/llama.cpp/ggml/src"
+export DYLD_LIBRARY_PATH="$LLAMA_LIB_DIR:$GGML_LIB_DIR:$DYLD_LIBRARY_PATH"
 
-# Start Microsoft BitNet 1.58b on Port 8086 (Fast Dispatcher)
-echo "Starting Microsoft BitNet 1.58b on port 8086..."
-$BINARY -m "$BITNET_158B_MODEL" --host 0.0.0.0 --port 8086 --ctx-size 8192 --threads 2 > /Users/bjornbellmann/TRIPODS\ 2.0/.logs/ms_bitnet_158b.log 2>&1 &
+# Model Paths (Absolute for reliability)
+FALCON_10B="$SCRIPT_DIR/models/ggml-model-i2_s.gguf"
+QWEN_8B="$SCRIPT_DIR/models/Qwen3-8B-BitNet/ggml-model-i2_s.gguf"
+SENTINEL_1B="$SCRIPT_DIR/models/BitNet-1.58b/ggml-model-i2_s.gguf"
 
-echo "Dual BitNet Stack initialized."
-wait
+# Verify Binary
+if [ ! -f "$BINARY" ]; then
+    echo "Error: BitNet binary not found at $BINARY"
+    exit 1
+fi
+
+# 1. The Architect (Port 8085) - Falcon-3 10B BitNet (Logic / Audit)
+echo "Starting Architect (Falcon-3 10B) on port 8085..."
+"$BINARY" -m "$FALCON_10B" --host 0.0.0.0 --port 8085 --ctx-size 8192 --threads 4 > "$LOG_DIR/triad_architect.log" 2>&1 &
+
+# 2. The Executor (Port 8086) - Qwen-3 8B BitNet (Operations / Command)
+echo "Starting Executor (Qwen-3 8B) on port 8086..."
+"$BINARY" -m "$QWEN_8B" --host 0.0.0.0 --port 8086 --ctx-size 8192 --threads 3 > "$LOG_DIR/triad_executor.log" 2>&1 &
+
+# 3. The Sentinel (Port 8087) - BitNet 1.58b (Router / Monitor)
+echo "Starting Sentinel (BitNet 1.58b) on port 8087..."
+"$BINARY" -m "$SENTINEL_1B" --host 0.0.0.0 --port 8087 --ctx-size 4096 --threads 1 > "$LOG_DIR/triad_sentinel.log" 2>&1 &
+
+echo "Sovereign Triad initialized and loading..."
