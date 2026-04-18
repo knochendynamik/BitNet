@@ -27,9 +27,9 @@ fi
 echo "Starting Architect (Falcon-3 10B) on port 8085..."
 "$BINARY" -m "$FALCON_10B" --host 0.0.0.0 --port 8085 --ctx-size 8192 --threads 4 > "$LOG_DIR/triad_architect.log" 2>&1 &
 
-# 2. The Executor (Port 8086) - Qwen-3 8B BitNet (Operations / Command)
-echo "Starting Executor (Qwen-3 8B) on port 8086..."
-"$BINARY" -m "$QWEN_8B" --host 0.0.0.0 --port 8086 --ctx-size 8192 --threads 3 > "$LOG_DIR/triad_executor.log" 2>&1 &
+# 2. DISABLED (Qwen-3 8B BitNet replaced by Gemma 4 on Port 11434)
+# echo "Starting Executor (Qwen-3 8B) on port 8086..."
+# "$BINARY" -m "$QWEN_8B" --host 0.0.0.0 --port 8086 --ctx-size 8192 --threads 3 > "$LOG_DIR/triad_executor.log" 2>&1 &
 
 # 3. The Sentinel (Port 8087) - BitNet 1.58b (Router / Monitor)
 echo "Starting Sentinel (BitNet 1.58b) on port 8087..."
