@@ -23,9 +23,9 @@ if [ ! -f "$BINARY" ]; then
     exit 1
 fi
 
-# 1. The Architect (Port 8085) - Falcon-3 10B BitNet (Logic / Audit)
-echo "Starting Architect (Falcon-3 10B) on port 8085..."
-"$BINARY" -m "$FALCON_10B" --host 0.0.0.0 --port 8085 --ctx-size 8192 --threads 4 > "$LOG_DIR/triad_architect.log" 2>&1 &
+# 1. The Architect (Port 8085) - Falcon-3 10B BitNet (Logic / Audit) [DEAKTIVIERT FÜR RAM-OPTIMIERUNG]
+# echo "Starting Architect (Falcon-3 10B) on port 8085..."
+# "$BINARY" -m "$FALCON_10B" --host 0.0.0.0 --port 8085 --ctx-size 8192 --threads 4 > "$LOG_DIR/triad_architect.log" 2>&1 &
 
 # 2. DISABLED (Qwen-3 8B BitNet replaced by Gemma 4 on Port 11434)
 # echo "Starting Executor (Qwen-3 8B) on port 8086..."
