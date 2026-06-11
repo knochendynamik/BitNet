@@ -30,6 +30,6 @@ fi
 
 # 3. The Sentinel (Port 8087) - BitNet 1.58b (Router / Monitor)
 echo "Starting Sentinel (BitNet 1.58b) on port 8087..."
-"$BINARY" -m "$SENTINEL_1B" --host 0.0.0.0 --port 8087 --ctx-size 4096 --threads 1 > "$LOG_DIR/triad_sentinel.log" 2>&1 &
+nohup "$BINARY" -m "$SENTINEL_1B" --host 0.0.0.0 --port 8087 --ctx-size 4096 --threads 1 -ngl 0 > "$LOG_DIR/triad_sentinel.log" 2>&1 &
 
 echo "Sovereign Triad initialized and loading..."
